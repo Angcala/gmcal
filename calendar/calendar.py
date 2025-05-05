@@ -1,0 +1,3 @@
+class Calendar:
+    """a calendar is a collection of sessions"""
+    ...
