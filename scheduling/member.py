@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from response import Response
+from .response import Response
 
 
 class Member:
