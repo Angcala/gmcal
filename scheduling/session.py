@@ -10,8 +10,8 @@ class Session:
     The member itself holds whether it is attending or not
     
     """
-    def __init__(self, creator: Member, date: datetime, members: List[Member]):
-        self._id = str(uuid4()) 
+    def __init__(self, creator: Member, date: datetime, members: List[Member], id: str=None):
+        self._id = id if id else str(uuid4()) 
         self._creator = creator
         self._date = date
         self._members = members
@@ -33,4 +33,11 @@ class Session:
         # return all suggested times from members
         ...
 
+    def to_dict(self) -> dict:
+        return {
+            id: self._id,
+            creator: self._creator,
+            date: self._date,
+            members: self._members
+        }
 
