@@ -16,5 +16,5 @@ class UserRepository:
     def get_by_name(self, name: str) -> Member:
         User = Query()
         user_obj = self.__db.search(User.name == name)
-        return Member(user_obj.name, user_obj.sessions, id=user_obj.id)
+        return Member(user_obj.name, id=user_obj.id)
 
