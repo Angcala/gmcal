@@ -1,4 +1,6 @@
-from tinydb import TinyDB, Query
+from tinydb import TinyDB, Query, where
+
+from typing import List
 
 from scheduling.session import Session
 
@@ -17,4 +19,12 @@ class SessionRepository:
         Session = Query()
         session_obj = self.__db.search(Session.id == id)
         return Session(session_obj.creator, session_obj.date, session_obj.members, id=session_obj.id)
+
+    def get_by_user(self, name: str) -> List[Session]:
+        sessions = []
+        session_objs = self.__db.search(where('creator').name == name)
+        for obj in session_objs:
+            sesh = Session(obj["creator"], obj["date"], obj["members"], id=obj["id"])
+            sessions.append(sesh)
+        return list(sessions)
 
