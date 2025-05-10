@@ -7,8 +7,8 @@ from repositories.session_repository import SessionRepository
 
 def main():
     # standup the db's
-    user_repo = UserRepository('users.json')
-    session_repo = SessionRepository('sessions.json')
+    user_repo = UserRepository('db/users.json')
+    session_repo = SessionRepository('db/sessions.json')
     
     # TODO: wire up scheduling services for sessions and repository
     member_service = MemberService(user_repo)
