@@ -1,8 +1,11 @@
 from tinydb import TinyDB, Query, where
 
 from typing import List
+from datetime import datetime
 
 from scheduling.session import Session
+from scheduling.member import Member
+from scheduling.response import Proposal
 
 class SessionRepository:
     """
@@ -16,9 +19,16 @@ class SessionRepository:
         self.__db.insert(session_data.to_dict())
 
     def get_by_id(self, id: str) -> Session:
-        Session = Query()
-        session_obj = self.__db.search(Session.id == id)
-        return Session(session_obj.creator, session_obj.date, session_obj.members, id=session_obj.id)
+        SessionQ = Query()
+        session_obj = self.__db.search(SessionQ.id == id)
+        obj = session_obj[0]
+        creator = Member(obj["creator"]["name"], id=obj["creator"]["id"])
+        time = Proposal(datetime.strptime(obj["date"]["start"], "%Y-%m-%dT%H:%M:%S"), datetime.strptime(obj["date"]["end"], "%Y-%m-%dT%H:%M:%S"), creator)
+        members = []
+        for mem in obj["members"]:
+            members.append(Member(mem["name"], id=mem["id"]))
+
+        return Session(creator, time, members, id=obj["id"])
 
     def get_by_user(self, name: str) -> List[Session]:
         sessions = []

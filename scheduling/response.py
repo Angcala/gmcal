@@ -8,6 +8,14 @@ class Proposal:
         self.start = start
         self.end = end
         self.creator = user
+    
+    def to_dict(self) -> dict:
+        return {
+            "start": self.start.strftime("%Y-%m-%dT%H:%M:%S"),
+            "end": self.end.strftime("%Y-%m-%dT%H:%M:%S"),
+            "creator": self.creator.to_dict()
+        }
+
 
 
 class Response(Enum):

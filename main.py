@@ -2,7 +2,7 @@ import argparse
 
 from scheduling.member import MemberService
 from scheduling.session import SessionService
-from scheduling.response import ProposalService
+from scheduling.response import ProposalService, Response
 
 from repositories.user_repository import UserRepository
 from repositories.session_repository import SessionRepository
@@ -32,6 +32,19 @@ class CLIHelpers:
     def get_all_users_helper(self, ctx):
         all_users = ctx.member_service.get_all_users()
         print(all_users)
+    
+    def handle_invite_response_helper(self, ctx, session_id, user, response, proposal=None):
+        if response == "yes":
+            ctx.session_service.handle_response(session_id, user, Response.YES)
+        elif response == "no":
+            ctx.session_service.handle_response(session_id, user, Response.NO)
+        elif response == "newtimes":
+            if not proposal:
+                raise ValueError("If you respond with `newtimes` you must provide a proposal `-p`")
+            prop = ctx.proposal_service.make_new_proposal(proposal[0], proposal[1], user)
+            ctx.session_service.handle_response(session_id, user, Response.PROPOSAL, proposal=prop)
+        else:
+            raise ValueError("Invalid response")
 
 def setup() -> Context:
     # standup the db's
@@ -43,8 +56,9 @@ def setup() -> Context:
     session_service = SessionService(session_repo, member_service, proposal_service)   
     
     ctx = Context()
-    ctx.set("member_service", member_service) 
-    ctx.set("session_service", session_service) 
+    ctx.set("member_service", member_service)
+    ctx.set("session_service", session_service)
+    ctx.set("proposal_service", proposal_service) 
 
     return ctx
 
@@ -69,26 +83,18 @@ def create_parser(ctx, helper_funcs):
     user_list_parser = subparsers.add_parser("list-users", help="list all users currently in system")
     user_list_parser.set_defaults(func=lambda args: helper_funcs.get_all_users_helper(ctx))
 
-    # Subparser for inviting users
-    # invite_parser = subparsers.add_parser("invite", help="Invite users to an existing session")
-    # invite_parser.add_argument("session_id", help="ID of the session to invite users to")
-    # invite_parser.add_argument("users", nargs='+', help="List of users to invite (space-separated)")
-    # invite_parser.set_defaults(func=invite_users)
-
-    # Subparser for listing sessions
-    # list_parser = subparsers.add_parser("list", help="List all existing sessions")
-    # list_parser.set_defaults(func=list_sessions)
-
     # Subparser for listing responses
     # responses_parser = subparsers.add_parser("responses", help="List responses for a specific session")
     # responses_parser.add_argument("session_id", help="ID of the session to list responses for")
     # responses_parser.set_defaults(func=list_responses)
 
     # Subparser for responding to a session
-    # respond_parser = subparsers.add_parser("respond", help="Respond to an invitation for a session")
-    # respond_parser.add_argument("session_id", help="ID of the session to respond to")
-    # respond_parser.add_argument("user", help="Your username")
-    # respond_parser.add_argument("response", choices=['yes', 'no', 'maybe'], help="Your response to the invitation")
+    respond_parser = subparsers.add_parser("respond", help="Respond to an invitation for a session")
+    respond_parser.add_argument("session_id", help="ID of the session to respond to")
+    respond_parser.add_argument("user", help="Your username")
+    respond_parser.add_argument("response", choices=['yes', 'no', 'newtimes'], help="Your response to the invitation")
+    respond_parser.add_argument("-p", "--proposal", nargs='+', help="two datetimes for start end (space-separated)")
+    respond_parser.set_defaults(func=lambda args: helper_funcs.handle_invite_response_helper(ctx, args.session_id, args.user, args.response, args.proposal))
     # respond_parser.set_defaults(func=respond_to_session)
 
     return parser

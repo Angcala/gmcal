@@ -15,7 +15,7 @@ class Session:
         self.creator = creator
         self.proposed_time = proposed_time
         self.members = members
-        self.responses = None
+        self.responses = {}
 
     def members_attending(self) -> List[Member]:
         """return members that have responded YES"""
@@ -37,9 +37,10 @@ class Session:
     def to_dict(self) -> dict:
         return {
             "id": self.id,
-            "creator": self.creator,
-            "date": self.proposed_time,
-            "members": self.members
+            "creator": self.creator.to_dict(),
+            "date": self.proposed_time.to_dict(),
+            "members": [member.to_dict() for member in self.members],
+            "responses": self.responses
         }
 
 class SessionService:
@@ -76,12 +77,29 @@ class SessionService:
     def get_by_id(self, id: str) -> Session:
         return self.__repo.get_by_id(id)
 
-    def list_users_sessions(self, user: Member) -> List[Session]:
-        # get all sessions where user is the creator or member
-        # TODO: Right now this only searches sessions you created. 
-        # TODO: It should include sessions you are a member of
-        
-        return self.__repo.get_by_user(user.name)
+    def handle_response(self, session_id: str, user: str, response: Response, proposal: Proposal = None):
+        try:
+            member = self.__member_svc.get_by_name(user)
+        except Exception as e:
+            raise ValueError(f"user {user} not found! ", e)
 
+        session = self.get_by_id(session_id)
+
+        # get the member if they're part of the session
+        if member.name not in [mem.name for mem in session.members]:
+            raise ValueError(f"member {member.name} not in this session!")
+        
+        if response == Response.YES or response == Response.NO:
+            session.responses[member.name] = {"response": response.value}
+
+        if response == Response.PROPOSAL:
+            session.responses[member.name] = {"response": response.value, "proposal": proposal}
+
+        self.__repo.save(session)
+    
+    def list_users(self, session_id: str) -> List[Member]:
+        session = self.get_by_id(session_id)
+
+        return session.members
         
         
