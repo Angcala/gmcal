@@ -1,5 +1,7 @@
 import argparse
 
+from datetime import datetime
+
 from scheduling.member import MemberService
 from scheduling.session import SessionService
 from scheduling.response import ProposalService, Response
@@ -73,7 +75,7 @@ def create_parser(ctx, helper_funcs):
     add_parser.add_argument("start", help="Datetime of the session start in ISO format (YYYY-MM-DDTHH:MM:SS)")
     add_parser.add_argument("end", help="Datetime of the session end in ISO format (YYYY-MM-DDTHH:MM:SS)")
     add_parser.add_argument("-u", "--users", nargs='+', help="List of users to invite (space-separated)")
-    add_parser.set_defaults(func=lambda args: ctx.session_service.create(args.creator, args.start, args.end, args.users))
+    add_parser.set_defaults(func=lambda args: ctx.session_service.create(args.creator, datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%S"), datetime.strptime(args.end, "%Y-%m-%dT%H:%M:%S"), args.users))
 
     # Subparser for creating a user
     user_parser = subparsers.add_parser("user", help="create a new user")
@@ -88,6 +90,17 @@ def create_parser(ctx, helper_funcs):
     # responses_parser.add_argument("session_id", help="ID of the session to list responses for")
     # responses_parser.set_defaults(func=list_responses)
 
+    # Subparser for deleting a session
+    session_del_parser = subparsers.add_parser("delete-session", help="delete a session")
+    session_del_parser.add_argument("session_id", help="ID of the session to delete")
+    session_del_parser.add_argument("user", help="Your username")
+    session_del_parser.set_defaults(func=lambda args: ctx.session_service.delete(args.session_id, args.user))
+
+    # Subparser for deleting a user
+    user_del_parser = subparsers.add_parser("delete-user", help="Delete a user with a given name. WARNING: cannot be undone.")
+    user_del_parser.add_argument("user", help="Your username")
+    user_del_parser.set_defaults(func=lambda args: ctx.member_service.delete(args.user))
+
     # Subparser for responding to a session
     respond_parser = subparsers.add_parser("respond", help="Respond to an invitation for a session")
     respond_parser.add_argument("session_id", help="ID of the session to respond to")
@@ -95,7 +108,6 @@ def create_parser(ctx, helper_funcs):
     respond_parser.add_argument("response", choices=['yes', 'no', 'newtimes'], help="Your response to the invitation")
     respond_parser.add_argument("-p", "--proposal", nargs='+', help="two datetimes for start end (space-separated)")
     respond_parser.set_defaults(func=lambda args: helper_funcs.handle_invite_response_helper(ctx, args.session_id, args.user, args.response, args.proposal))
-    # respond_parser.set_defaults(func=respond_to_session)
 
     return parser
 

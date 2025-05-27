@@ -15,6 +15,10 @@ class SessionRepository:
     def __init__(self, db_name: str):
         self.__db = TinyDB(db_name)
 
+    def delete(self, session_id: str):
+        SessionQ = Query()
+        self.__db.remove(SessionQ.id == session_id)
+
     def save(self, session_data: Session):
         self.__db.insert(session_data.to_dict())
 

@@ -30,9 +30,6 @@ class Session:
         # iterate over members and return a map with member: responses
         ...
 
-    def suggested_times(self) -> List[datetime]:
-        # return all suggested times from members
-        ...
 
     def to_dict(self) -> dict:
         return {
@@ -68,11 +65,22 @@ class SessionService:
 
             players.append(user)
 
-
         session = Session(creator, proposed_time, players, id=id)
         self.__repo.save(session)
         return session
 
+    def delete(self, session_id: str, username: str):
+        try:
+            member = self.__member_svc.get_by_name(username)
+        except Exception as e:
+            raise ValueError(f"User {username} not found! ", e)
+
+        session = self.get_by_id(session_id)
+
+        if session.creator._id != member._id:
+            raise ValueError(f"only {session.creator.name} may delete this session")
+        
+        self.__repo.delete(session_id)
 
     def get_by_id(self, id: str) -> Session:
         return self.__repo.get_by_id(id)

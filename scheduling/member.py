@@ -25,4 +25,7 @@ class MemberService:
 
     def get_by_name(self, name: str) -> Member:
         return self.__repo.get_by_name(name)
+    
+    def delete(self, name: str):
+        self.__repo.delete(name)
 

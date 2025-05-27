@@ -27,3 +27,6 @@ class UserRepository:
         user_obj = user_list[0]
         return Member(user_obj["name"], id=user_obj["id"])
 
+    def delete(self, name: str):
+        User = Query()
+        self.__db.remove(User.name == name)
