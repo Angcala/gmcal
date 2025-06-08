@@ -23,12 +23,6 @@ class Response(Enum):
     NO: str = "no"
     PROPOSAL: Proposal = None
 
-    suggested_time: datetime | None = None
-
-    @classmethod
-    def set_suggested_time(cls, new_time: datetime):
-        cls.suggested_time = new_time
-
 
 class ProposalService:
     def __init__(self, member_svc: MemberService):

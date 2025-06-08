@@ -47,6 +47,25 @@ class CLIHelpers:
             ctx.session_service.handle_response(session_id, user, Response.PROPOSAL, proposal=prop)
         else:
             raise ValueError("Invalid response")
+    
+    def list_responses_helper(self, ctx, session_id):
+        responses = ctx.session_service.view_responses(session_id)
+        if not responses:
+            print("No responses yet!\n")
+        else:
+            for user in responses.keys():
+                print(f"Member {user} response: {responses[user]}")
+            print("\n")
+    
+    def list_sessions_helper(self, ctx, name):
+        sessions = ctx.session_service.list_user_sessions(name)
+        for session in sessions:
+            print("========================")
+            print(f"Session ID: {session.id}")
+            print(f"Session Time: {session.proposed_time.to_dict()}")
+            print("Members: ", ", ".join([mem.to_dict()["name"] for mem in session.members]))
+            print(f"Responses: {session.responses}")
+
 
 def setup() -> Context:
     # standup the db's
@@ -86,9 +105,9 @@ def create_parser(ctx, helper_funcs):
     user_list_parser.set_defaults(func=lambda args: helper_funcs.get_all_users_helper(ctx))
 
     # Subparser for listing responses
-    # responses_parser = subparsers.add_parser("responses", help="List responses for a specific session")
-    # responses_parser.add_argument("session_id", help="ID of the session to list responses for")
-    # responses_parser.set_defaults(func=list_responses)
+    responses_parser = subparsers.add_parser("responses", help="List responses for a specific session")
+    responses_parser.add_argument("session_id", help="ID of the session to list responses for")
+    responses_parser.set_defaults(func=lambda args: helper_funcs.list_responses_helper(ctx, args.session_id))
 
     # Subparser for deleting a session
     session_del_parser = subparsers.add_parser("delete-session", help="delete a session")
@@ -108,6 +127,11 @@ def create_parser(ctx, helper_funcs):
     respond_parser.add_argument("response", choices=['yes', 'no', 'newtimes'], help="Your response to the invitation")
     respond_parser.add_argument("-p", "--proposal", nargs='+', help="two datetimes for start end (space-separated)")
     respond_parser.set_defaults(func=lambda args: helper_funcs.handle_invite_response_helper(ctx, args.session_id, args.user, args.response, args.proposal))
+
+    # Subparser for listing a user's sessions
+    list_sessions_parser = subparsers.add_parser("list-sessions", help="list sessions user has created")
+    list_sessions_parser.add_argument("name", help="name of the user that created the sessions")
+    list_sessions_parser.set_defaults(func=lambda args: helper_funcs.list_sessions_helper(ctx, args.name))
 
     return parser
 

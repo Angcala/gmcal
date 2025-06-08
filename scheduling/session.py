@@ -84,6 +84,10 @@ class SessionService:
 
     def get_by_id(self, id: str) -> Session:
         return self.__repo.get_by_id(id)
+    
+    def view_responses(self, id: str) -> dict:
+        session = self.get_by_id(id)
+        return session.responses
 
     def handle_response(self, session_id: str, user: str, response: Response, proposal: Proposal = None):
         try:
@@ -110,4 +114,7 @@ class SessionService:
 
         return session.members
         
-        
+    def list_user_sessions(self, name: str) -> List[dict]:
+        # sessions = self.__repo.get_by_user(name.lower())
+        # list_sessions = [sesh.to_dict() for sesh in sessions]
+        return self.__repo.get_by_user(name.lower())

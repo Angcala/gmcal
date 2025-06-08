@@ -38,7 +38,12 @@ class SessionRepository:
         sessions = []
         session_objs = self.__db.search(where('creator').name == name)
         for obj in session_objs:
-            sesh = Session(obj["creator"], obj["date"], obj["members"], id=obj["id"])
+            creator = Member(obj["creator"]["name"], id=obj["creator"]["id"])
+            time = Proposal(datetime.strptime(obj["date"]["start"], "%Y-%m-%dT%H:%M:%S"), datetime.strptime(obj["date"]["end"], "%Y-%m-%dT%H:%M:%S"), creator)
+            members = []
+            for mem in obj["members"]:
+                members.append(Member(mem["name"], id=mem["id"]))
+            sesh = Session(creator, time, members, id=obj["id"])
             sessions.append(sesh)
-        return list(sessions)
+        return sessions
 
